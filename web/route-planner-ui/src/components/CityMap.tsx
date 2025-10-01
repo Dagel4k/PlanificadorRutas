@@ -119,7 +119,7 @@ const CityMap: FC<CityMapProps> = ({
   
   // Create route path coordinates
   const routePath = useMemo(() => {
-    console.log('🔍 Debug route data:', {
+    console.log('Debug route data:', {
       calculatedRoute: calculatedRoute?.length || 0,
       routeNodes,
       routeCoordinates,
@@ -128,23 +128,23 @@ const CityMap: FC<CityMapProps> = ({
     
     // Priority 1: Use calculated route from CitySimulator
     if (calculatedRoute && calculatedRoute.length > 0) {
-      console.log('✅ Using calculated route from CitySimulator:', calculatedRoute);
+      console.log('Using calculated route from CitySimulator:', calculatedRoute);
       const path = calculatedRoute.map(node => [node.lat, node.lon] as [number, number]);
-      console.log('🛣️ Calculated route path:', path);
+      console.log('Calculated route path:', path);
       return path;
     }
     
     // Priority 2: TEMPORARY: Create a test route using first 5 city nodes if no route from store
     if (routeNodes.length === 0 && nodes.length > 0) {
-      console.log('🧪 Creating test route with first 5 city nodes');
+      console.log('Creating test route with first 5 city nodes');
       const testPath = nodes.slice(0, 5).map(node => [node.lat, node.lon] as [number, number]);
-      console.log('🛣️ Test route path:', testPath);
+      console.log('Test route path:', testPath);
       return testPath;
     }
     
     // Priority 3: Use route from store
     if (routeNodes.length === 0) {
-      console.log('❌ No route nodes found');
+      console.log('No route nodes found');
       return [];
     }
     
@@ -152,7 +152,7 @@ const CityMap: FC<CityMapProps> = ({
       // First try to get coordinates from store
       if (routeCoordinates[nodeId]) {
         const coords = [routeCoordinates[nodeId][1], routeCoordinates[nodeId][0]] as [number, number];
-        console.log(`✅ Found coordinates for node ${nodeId}:`, coords);
+        console.log(`Found coordinates for node ${nodeId}:`, coords);
         return coords;
       }
       
@@ -160,15 +160,15 @@ const CityMap: FC<CityMapProps> = ({
       const cityNode = nodes.find(node => node.id === nodeId);
       if (cityNode) {
         const coords = [cityNode.lat, cityNode.lon] as [number, number];
-        console.log(`✅ Found city node ${nodeId}:`, coords);
+        console.log(`Found city node ${nodeId}:`, coords);
         return coords;
       }
       
-      console.log(`❌ No coordinates found for node ${nodeId}`);
+      console.log(`No coordinates found for node ${nodeId}`);
       return null;
     }).filter(Boolean) as [number, number][];
     
-    console.log('🛣️ Final route path:', path);
+    console.log('Final route path:', path);
     return path;
   }, [calculatedRoute, routeNodes, routeCoordinates, nodes]);
   
@@ -221,10 +221,10 @@ const CityMap: FC<CityMapProps> = ({
   }
 
   return (
-    <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl border border-gray-600 shadow-xl p-4">
+    <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl border border-gray-600 shadow-xl p-4 h-full flex flex-col">
       <h3 className="text-lg font-semibold text-white mb-4">Mapa de la Ciudad</h3>
       
-      <div className="bg-gray-700 rounded-lg p-4 overflow-hidden">
+      <div className="bg-gray-700 rounded-lg p-4 overflow-hidden flex-1 flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <div className="text-sm text-gray-400">
             {nodes.length.toLocaleString()} nodos • Zoom: {mapZoom}
@@ -233,27 +233,43 @@ const CityMap: FC<CityMapProps> = ({
                 • Ruta activa ({routePath.length} nodos)
               </span>
             )}
-            {/* Debug info */}
-            <span className="ml-2 text-yellow-400 text-xs">
-              Route nodes: {routeNodes.length} | Path: {routePath.length}
-            </span>
-            {/* Test route button */}
-            <button 
-              onClick={() => {
-                console.log('🧪 Testing route with first 5 nodes');
-                // This is just for testing - in real app this would come from store
-              }}
-              className="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
-            >
-              Test Route
-            </button>
           </div>
           <div className="text-xs text-gray-500">
             {routePath.length > 1 ? 'Ruta calculada visible' : 'Haz clic en un nodo para seleccionarlo'}
           </div>
         </div>
         
-        <div className="border border-gray-600 rounded-lg overflow-hidden" style={{ height: '400px' }}>
+        {/* Route Information - Distributed in map area */}
+        {routePath.length > 1 && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-2 text-center">
+              <div className="text-green-300 text-xs font-medium">Distancia</div>
+              <div className="text-white font-mono text-sm">
+                {Math.round(routePath.reduce((total, coord, i) => {
+                  if (i === 0) return 0;
+                  const prevCoord = routePath[i-1];
+                  const distance = Math.sqrt(
+                    Math.pow(coord[0] - prevCoord[0], 2) + 
+                    Math.pow(coord[1] - prevCoord[1], 2)
+                  ) * 111000; // Rough conversion to meters
+                  return total + distance;
+                }, 0))}m
+              </div>
+            </div>
+            <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2 text-center">
+              <div className="text-blue-300 text-xs font-medium">Nodos</div>
+              <div className="text-white font-mono text-sm">{routePath.length}</div>
+            </div>
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-2 text-center">
+              <div className="text-purple-300 text-xs font-medium">Tipo</div>
+              <div className="text-white font-mono text-xs">
+                {routePath.length > 0 ? 'Real' : 'Simulado'}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="border border-gray-600 rounded-lg overflow-hidden flex-1">
           <MapContainer
             center={mapCenter}
             zoom={mapZoom}
@@ -321,7 +337,7 @@ const CityMap: FC<CityMapProps> = ({
           </MapContainer>
         </div>
         
-        <div className="mt-4 text-xs text-gray-400">
+        <div className="mt-4 text-xs text-gray-400 flex-shrink-0">
           <div className="flex justify-between">
             <span>Centro: {mapCenter[0].toFixed(4)}, {mapCenter[1].toFixed(4)}</span>
             <span>Arrastra para mover • Rueda para zoom</span>

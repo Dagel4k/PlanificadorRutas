@@ -76,15 +76,15 @@ const MapContainer: FC<MapContainerProps> = ({ height }) => {
 
   if (!loaded) {
     return (
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-600 shadow-lg flex items-center justify-center" style={{ height: effectiveHeight }}>
-        <div className="text-center">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+      <div className="bg-gray-800 rounded-lg p-3 xs:p-4 sm:p-5 md:p-6 border border-gray-600 shadow-lg flex items-center justify-center" style={{ height: effectiveHeight }}>
+        <div className="text-center px-2 xs:px-3 sm:px-4">
+          <div className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-2 xs:mb-3 sm:mb-4">
+            <svg className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
             </svg>
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Sin Grafo Cargado</h3>
-          <p className="text-xs sm:text-sm text-gray-400">Carga un grafo para visualizar rutas y algoritmos</p>
+          <h3 className="text-base xs:text-lg sm:text-xl font-semibold text-white mb-1 xs:mb-2 leading-tight">Sin Grafo Cargado</h3>
+          <p className="text-xs xs:text-sm text-gray-400 leading-relaxed">Carga un grafo para visualizar rutas y algoritmos</p>
         </div>
       </div>
     );
@@ -232,12 +232,12 @@ const MapContainer: FC<MapContainerProps> = ({ height }) => {
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-600 shadow-lg w-full max-w-full overflow-hidden relative flex flex-col" style={{ height: effectiveHeight }}>
+    <div className="bg-gray-800 rounded-lg p-3 xs:p-4 sm:p-5 md:p-6 border border-gray-600 shadow-lg w-full max-w-full overflow-hidden relative flex flex-col" style={{ height: effectiveHeight }}>
       {/* Map Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 space-y-2 sm:space-y-0">
-        <div className="min-w-0">
-          <h3 className="text-lg sm:text-xl font-semibold text-white truncate">Visualización de Ruta</h3>
-          <p className="text-xs sm:text-sm text-gray-400 truncate">
+      <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mb-2 xs:mb-3 sm:mb-4 space-y-2 xs:space-y-0">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base xs:text-lg sm:text-xl font-semibold text-white truncate leading-tight">Visualización de Ruta</h3>
+          <p className="text-xs xs:text-sm text-gray-400 truncate leading-relaxed">
             {routeNodes.length > 0 
               ? `Mostrando ${routeNodes.length} nodos`
               : 'Visualización interactiva del grafo'
@@ -245,20 +245,20 @@ const MapContainer: FC<MapContainerProps> = ({ height }) => {
           </p>
         </div>
         
-        <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+        <div className="flex items-center space-x-1.5 xs:space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0">
           {/* Legend */}
-          <div className="flex items-center space-x-2 sm:space-x-4 text-xs">
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full flex-shrink-0" />
-              <span className="text-gray-400 hidden sm:inline">Origen</span>
+          <div className="flex items-center space-x-1.5 xs:space-x-2 sm:space-x-3 md:space-x-4 text-xs">
+            <div className="flex items-center space-x-0.5 xs:space-x-1">
+              <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full flex-shrink-0" />
+              <span className="text-gray-400 hidden xs:inline text-xs">Origen</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded-full flex-shrink-0" />
-              <span className="text-gray-400 hidden sm:inline">Destino</span>
+            <div className="flex items-center space-x-0.5 xs:space-x-1">
+              <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-yellow-500 rounded-full flex-shrink-0" />
+              <span className="text-gray-400 hidden xs:inline text-xs">Destino</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-600 rounded-full flex-shrink-0" />
-              <span className="text-gray-400 hidden sm:inline">Ruta</span>
+            <div className="flex items-center space-x-0.5 xs:space-x-1">
+              <div className="w-1.5 h-1.5 xs:w-2 xs:h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-red-600 rounded-full flex-shrink-0" />
+              <span className="text-gray-400 hidden xs:inline text-xs">Ruta</span>
             </div>
           </div>
         </div>
@@ -268,7 +268,7 @@ const MapContainer: FC<MapContainerProps> = ({ height }) => {
       <div 
         ref={mapRef} 
         className="relative bg-gray-700 rounded-lg border border-gray-600 overflow-hidden w-full max-w-full flex-1"
-        style={{ minHeight: '300px' }}
+        style={{ minHeight: '250px' }}
       >
         {/* SVG Visualization */}
         {SvgContent}
@@ -276,27 +276,27 @@ const MapContainer: FC<MapContainerProps> = ({ height }) => {
         {/* Loading State - Overlay when not ready */}
         {!mapReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-700/80">
-            <div className="text-center">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-xs sm:text-sm text-gray-400">Cargando mapa...</p>
+            <div className="text-center px-2 xs:px-3 sm:px-4">
+              <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-1 xs:mb-2" />
+              <p className="text-xs xs:text-sm text-gray-400">Cargando mapa...</p>
             </div>
           </div>
         )}
         
         {/* Map Controls (top-right) */}
-        <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex flex-col space-y-1 sm:space-y-2">
-          <button onClick={zoomIn} className="bg-gray-800 border border-gray-600 p-1.5 sm:p-2 rounded hover:bg-gray-700 transition-colors" title="Acercar">
-            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <div className="absolute top-1.5 xs:top-2 sm:top-3 md:top-4 right-1.5 xs:right-2 sm:right-3 md:right-4 flex flex-col space-y-1 xs:space-y-1.5 sm:space-y-2">
+          <button onClick={zoomIn} className="bg-gray-800 border border-gray-600 p-1 xs:p-1.5 sm:p-2 rounded hover:bg-gray-700 transition-colors" title="Acercar">
+            <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
             </svg>
           </button>
-          <button onClick={zoomOut} className="bg-gray-800 border border-gray-600 p-1.5 sm:p-2 rounded hover:bg-gray-700 transition-colors" title="Alejar">
-            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <button onClick={zoomOut} className="bg-gray-800 border border-gray-600 p-1 xs:p-1.5 sm:p-2 rounded hover:bg-gray-700 transition-colors" title="Alejar">
+            <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path d="M4 9a1 1 0 100 2h12a1 1 0 100-2H4z" />
             </svg>
           </button>
-          <button onClick={toggleFullscreen} className="bg-gray-800 border border-gray-600 p-1.5 sm:p-2 rounded hover:bg-gray-700 transition-colors" title="Pantalla completa">
-            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <button onClick={toggleFullscreen} className="bg-gray-800 border border-gray-600 p-1 xs:p-1.5 sm:p-2 rounded hover:bg-gray-700 transition-colors" title="Pantalla completa">
+            <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 3h6v2H5v4H3V3zm14 0v6h-2V5h-4V3h6zM3 17v-6h2v4h4v2H3zm14-6v6h-6v-2h4v-4h2z" />
             </svg>
           </button>
@@ -305,13 +305,19 @@ const MapContainer: FC<MapContainerProps> = ({ height }) => {
       
       {/* Map Footer */}
       {routeNodes.length > 0 && (
-        <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm space-y-1 sm:space-y-0">
-            <span className="text-gray-400 truncate">
-              Ruta: {routeNodes.join(' → ')}
+        <div className="mt-2 xs:mt-3 sm:mt-4 p-2 xs:p-2.5 sm:p-3 bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
+          <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between text-xs space-y-1 xs:space-y-0">
+            <span className="text-gray-400 truncate leading-relaxed">
+              <span className="hidden xs:inline">Ruta: </span>
+              <span className="xs:hidden">R: </span>
+              {routeNodes.length > 5 
+                ? `${routeNodes.slice(0, 3).join(' → ')} → ... → ${routeNodes[routeNodes.length - 1]}`
+                : routeNodes.join(' → ')
+              }
             </span>
-            <span className="text-red-600 font-medium truncate">
-              Costo: {routeCost.toFixed(2)} | Algoritmo: {routeAlgorithm.toUpperCase()}
+            <span className="text-red-600 font-medium truncate leading-relaxed">
+              <span className="hidden sm:inline">Costo: {routeCost.toFixed(2)} | Algoritmo: {routeAlgorithm.toUpperCase()}</span>
+              <span className="sm:hidden">{routeCost.toFixed(1)} | {routeAlgorithm.toUpperCase()}</span>
             </span>
           </div>
         </div>

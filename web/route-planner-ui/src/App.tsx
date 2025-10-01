@@ -93,7 +93,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white overflow-x-hidden">
       {/* Header with Navigation */}
       <Header 
         onActionClick={handleHeaderAction} 
@@ -102,13 +102,13 @@ function App() {
       />
 
       {/* Main Content */}
-      <main className="pt-48">
+      <main className="pt-32 xs:pt-36 sm:pt-40 md:pt-44 lg:pt-48 xl:pt-52">
         {activeTab === 'original' ? (
           <OriginalSimulator />
         ) : activeTab === 'city' ? (
           <CitySimulatorSection />
         ) : (
-          <div className="px-4 sm:px-6 lg:px-8">
+          <div className="px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
             <PerformanceDashboard />
           </div>
         )}
