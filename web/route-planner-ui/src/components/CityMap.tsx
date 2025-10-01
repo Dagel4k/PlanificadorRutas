@@ -3,13 +3,15 @@
  * Real map with Leaflet and city nodes visualization
  */
 
-import { useState, useCallback, FC, useMemo } from 'react';
+import { useState, useCallback, FC, useMemo, memo } from 'react';
 // @ts-ignore
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 // @ts-ignore
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useRouteNodes, useRouteCoordinates } from '../store';
+import { useMapOptimization } from '../hooks/useMapOptimization';
+import OptimizedMarkers from './OptimizedMarkers';
 
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -31,24 +33,25 @@ interface CityMapProps {
   selectedSource?: number | null;
   selectedTarget?: number | null;
   calculatedRoute?: CityNode[];
+  maxNodesToRender?: number;
   onNodeClick?: (node: CityNode) => void;
   onMapClick?: (lat: number, lon: number) => void;
 }
 
-// Custom marker component
+// Custom marker component - memoized for performance
 const CustomMarker: FC<{
   node: CityNode;
   isSelected: boolean;
   isSource: boolean;
   isTarget: boolean;
   onClick: (node: CityNode) => void;
-}> = ({ node, isSelected, isSource, isTarget, onClick }) => {
+}> = memo(({ node, isSelected, isSource, isTarget, onClick }) => {
   let color = '#6b7280'; // gray
   if (isSource) color = '#ef4444'; // red
   else if (isTarget) color = '#22c55e'; // green
   else if (isSelected) color = '#3b82f6'; // blue
 
-  const icon = L.divIcon({
+  const icon = useMemo(() => L.divIcon({
     className: 'custom-marker',
     html: `<div style="
       width: ${isSelected ? '16px' : '12px'};
@@ -61,14 +64,18 @@ const CustomMarker: FC<{
     "></div>`,
     iconSize: [isSelected ? 20 : 16, isSelected ? 20 : 16],
     iconAnchor: [isSelected ? 10 : 8, isSelected ? 10 : 8],
-  });
+  }), [isSelected, color]);
+
+  const handleClick = useCallback(() => {
+    onClick(node);
+  }, [onClick, node]);
 
   return (
     <Marker
       position={[node.lat, node.lon] as [number, number]}
       icon={icon}
       eventHandlers={{
-        click: () => onClick(node),
+        click: handleClick,
       }}
     >
       <Popup>
@@ -85,7 +92,7 @@ const CustomMarker: FC<{
       </Popup>
     </Marker>
   );
-};
+});
 
 // Component to handle map clicks
 const MapClickHandler: FC<{ onMapClick: (lat: number, lon: number) => void }> = ({ onMapClick }) => {
@@ -110,12 +117,19 @@ const CityMap: FC<CityMapProps> = ({
   selectedSource, 
   selectedTarget, 
   calculatedRoute,
+  maxNodesToRender = 5000,
   onNodeClick, 
   onMapClick 
 }) => {
   // Get route data from store
-  const routeNodes = useRouteNodes();
+  const routeNodes = useRouteNodes() as number[];
   const routeCoordinates = useRouteCoordinates();
+  
+  // Use map optimization hook
+  const { mapBounds, debouncedCallback } = useMapOptimization({ 
+    nodes, 
+    maxNodesToRender: 1000 
+  });
   
   // Create route path coordinates
   const routePath = useMemo(() => {
@@ -148,7 +162,7 @@ const CityMap: FC<CityMapProps> = ({
       return [];
     }
     
-    const path = routeNodes.map(nodeId => {
+    const path = routeNodes.map((nodeId: number) => {
       // First try to get coordinates from store
       if (routeCoordinates[nodeId]) {
         const coords = [routeCoordinates[nodeId][1], routeCoordinates[nodeId][0]] as [number, number];
@@ -172,37 +186,8 @@ const CityMap: FC<CityMapProps> = ({
     return path;
   }, [calculatedRoute, routeNodes, routeCoordinates, nodes]);
   
-  // Calculate map center and bounds
-  const mapCenter = useMemo(() => {
-    if (nodes.length === 0) return [24.7841, -107.3866] as [number, number];
-    
-    const lats = nodes.map(node => node.lat);
-    const lons = nodes.map(node => node.lon);
-    
-    return [
-      (Math.min(...lats) + Math.max(...lats)) / 2,
-      (Math.min(...lons) + Math.max(...lons)) / 2,
-    ] as [number, number];
-  }, [nodes]);
-
-  // Calculate appropriate zoom level based on node spread
-  const mapZoom = useMemo(() => {
-    if (nodes.length === 0) return 12;
-    
-    const lats = nodes.map(node => node.lat);
-    const lons = nodes.map(node => node.lon);
-    
-    const latRange = Math.max(...lats) - Math.min(...lats);
-    const lonRange = Math.max(...lons) - Math.min(...lons);
-    const maxRange = Math.max(latRange, lonRange);
-    
-    // Adjust zoom based on spread (smaller spread = higher zoom)
-    if (maxRange < 0.01) return 15;
-    if (maxRange < 0.05) return 14;
-    if (maxRange < 0.1) return 13;
-    if (maxRange < 0.2) return 12;
-    return 11;
-  }, [nodes]);
+  // Use optimized map bounds
+  const { center: mapCenter, zoom: mapZoom } = mapBounds;
 
   // Handle marker click
   const handleMarkerClick = useCallback((node: CityNode) => {
@@ -313,24 +298,16 @@ const CityMap: FC<CityMapProps> = ({
               </>
             )}
 
-            {/* City nodes as markers */}
-            {nodes.map((node) => {
-              const isSelected = node.id === selectedSource || node.id === selectedTarget;
-              const isSource = node.id === selectedSource;
-              const isTarget = node.id === selectedTarget;
-              const isInRoute = calculatedRoute ? calculatedRoute.some(routeNode => routeNode.id === node.id) : routeNodes.includes(node.id);
-              
-              return (
-                <CustomMarker
-                  key={node.id}
-                  node={node}
-                  isSelected={isSelected || isInRoute}
-                  isSource={isSource}
-                  isTarget={isTarget}
-                  onClick={handleMarkerClick}
-                />
-              );
-            })}
+            {/* Optimized markers */}
+            <OptimizedMarkers
+              nodes={nodes}
+              selectedSource={selectedSource}
+              selectedTarget={selectedTarget}
+              calculatedRoute={calculatedRoute}
+              routeNodes={routeNodes as number[]}
+              onNodeClick={handleMarkerClick}
+              maxMarkers={maxNodesToRender}
+            />
 
             {/* Map click handler */}
             {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
@@ -348,4 +325,4 @@ const CityMap: FC<CityMapProps> = ({
   );
 };
 
-export default CityMap;
+export default memo(CityMap);

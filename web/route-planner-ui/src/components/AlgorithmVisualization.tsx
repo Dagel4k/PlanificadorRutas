@@ -3,7 +3,7 @@
  * Step-by-step visualization of the pathfinding algorithm
  */
 
-import { useState, useEffect, FC } from 'react';
+import { useState, useEffect, FC, memo, useMemo, useCallback } from 'react';
 import VisualAlgorithmMap from './VisualAlgorithmMap';
 
 interface AlgorithmStep {
@@ -74,14 +74,14 @@ const AlgorithmVisualization: FC<AlgorithmVisualizationProps> = ({
     }
   }, [isPlaying, currentStep, algorithmSteps.length, playbackSpeed]);
 
-  const handleStepChange = (stepIndex: number) => {
+  const handleStepChange = useCallback((stepIndex: number) => {
     setCurrentStep(stepIndex);
     if (algorithmSteps[stepIndex]) {
       onStepChange?.(algorithmSteps[stepIndex]);
     }
-  };
+  }, [algorithmSteps, onStepChange]);
 
-  const getActionIcon = (action: string) => {
+  const getActionIcon = useCallback((action: string) => {
     switch (action) {
       case 'initialize': return (
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -109,9 +109,9 @@ const AlgorithmVisualization: FC<AlgorithmVisualizationProps> = ({
         </svg>
       );
     }
-  };
+  }, []);
 
-  const getActionColor = (action: string) => {
+  const getActionColor = useCallback((action: string) => {
     switch (action) {
       case 'initialize': return 'bg-blue-600';
       case 'explore': return 'bg-green-600';
@@ -119,7 +119,7 @@ const AlgorithmVisualization: FC<AlgorithmVisualizationProps> = ({
       case 'found_target': return 'bg-red-600';
       default: return 'bg-gray-600';
     }
-  };
+  }, []);
 
   if (!isCalculating && algorithmSteps.length === 0) {
     return (
@@ -402,4 +402,4 @@ const AlgorithmVisualization: FC<AlgorithmVisualizationProps> = ({
   );
 };
 
-export default AlgorithmVisualization;
+export default memo(AlgorithmVisualization);

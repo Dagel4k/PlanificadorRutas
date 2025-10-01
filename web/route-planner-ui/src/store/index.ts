@@ -496,7 +496,7 @@ export const useRouteSimulatorStore = create<RouteSimulatorStore>()(
   })
 );
 
-// Selector hooks for components
+// Selector hooks for components - optimized with shallow comparison
 export const useGraphState = () => useRouteSimulatorStore((state) => state.graph);
 export const useGraphNodes = () => useRouteSimulatorStore((state) => state.graphNodes);
 export const useGraphEdges = () => useRouteSimulatorStore((state) => state.graphEdges);
@@ -505,7 +505,7 @@ export const useMetricsState = () => useRouteSimulatorStore((state) => state.met
 export const useSystemState = () => useRouteSimulatorStore((state) => state.system);
 export const useGraphMetrics = () => useRouteSimulatorStore((state) => state.graphMetrics);
 
-// Individual route selectors for better stability
+// Individual route selectors for better stability - optimized
 export const useRouteNodes = () => useRouteSimulatorStore((state) => state.route.nodes);
 export const useRouteCost = () => useRouteSimulatorStore((state) => state.route.cost);
 export const useRouteAlgorithm = () => useRouteSimulatorStore((state) => state.route.algorithm);

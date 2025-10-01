@@ -4,6 +4,22 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  // Optimize for production builds
+  purge: {
+    enabled: process.env.NODE_ENV === 'production',
+    content: [
+      "./index.html",
+      "./src/**/*.{js,ts,jsx,tsx}",
+    ],
+    options: {
+      safelist: [
+        // Keep dynamic classes that might be missed
+        /^bg-(red|green|blue|yellow|gray)-/,
+        /^text-(red|green|blue|yellow|gray)-/,
+        /^border-(red|green|blue|yellow|gray)-/,
+      ]
+    }
+  },
   theme: {
     screens: {
       'xs': '475px',

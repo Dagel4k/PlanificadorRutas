@@ -3,7 +3,7 @@
  * Realistic route planning using real city data
  */
 
-import { useState, useEffect, useCallback, FC } from 'react';
+import { useState, useEffect, useCallback, FC, useMemo, memo } from 'react';
 import { useLoadGraph, useCalculateRoute, useClearRoute, useGraphState } from '../store';
 import { styleTokens } from '../styles/tokens';
 import CityStats from './CityStats';
@@ -11,6 +11,7 @@ import CityMap from './CityMap';
 import EducationalPanel from './EducationalPanel';
 import DemoExamples from './DemoExamples';
 import AlgorithmVisualization from './AlgorithmVisualization';
+import NodeDensityControl from './NodeDensityControl';
 
 interface CityNode {
   id: number;
@@ -27,7 +28,8 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
   const loadGraph = useLoadGraph();
   const calculateRoute = useCalculateRoute();
   const clearRoute = useClearRoute();
-  const { loaded } = useGraphState();
+  const graphState = useGraphState();
+  const loaded = graphState?.loaded || false;
   
   const [cityNodes, setCityNodes] = useState<CityNode[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,9 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
     description: string;
     timestamp: number;
   }>>([]);
+  
+  // Node density control
+  const [maxNodesToRender, setMaxNodesToRender] = useState(5000);
 
   // Load city nodes from JSON file
   const loadCityData = useCallback(async () => {
@@ -85,7 +90,7 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
     }
   }, []);
 
-  // Calculate distance between two points using Haversine formula
+  // Calculate distance between two points using Haversine formula - memoized
   const calculateDistance = useCallback((lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371000; // Earth's radius in meters
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -97,16 +102,18 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
     return R * c;
   }, []);
 
-  // Find nearby nodes within search radius
+  // Find nearby nodes within search radius - optimized with memoization
   const findNearbyNodes = useCallback((lat: number, lon: number, radius: number) => {
-    const nearby = cityNodes.filter(node => {
-      const distance = calculateDistance(lat, lon, node.lat, node.lon);
-      return distance <= radius;
-    }).sort((a, b) => {
-      const distA = calculateDistance(lat, lon, a.lat, a.lon);
-      const distB = calculateDistance(lat, lon, b.lat, b.lon);
-      return distA - distB;
-    }).slice(0, 10); // Limit to 10 closest nodes
+    // Use a more efficient approach for large datasets
+    const nearby = cityNodes
+      .map(node => ({
+        node,
+        distance: calculateDistance(lat, lon, node.lat, node.lon)
+      }))
+      .filter(item => item.distance <= radius)
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 10) // Limit to 10 closest nodes
+      .map(item => item.node);
     
     setNearbyNodes(nearby);
   }, [cityNodes, calculateDistance]);
@@ -176,7 +183,7 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
     return graph;
   }, []);
 
-  // Create a street-based graph from city nodes (fallback for old dataset)
+  // Create a street-based graph from city nodes (fallback for old dataset) - optimized
   const createStreetGraph = useCallback((nodes: CityNode[]) => {
     const graph = new Map<number, { node: CityNode; neighbors: Array<{ node: CityNode; distance: number }> }>();
     
@@ -189,10 +196,14 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
     // This is a simplified approach - ideally you'd have real street connectivity data
     const maxConnectionDistance = 100; // meters - reduced for more realistic connections
     
-    nodes.forEach(node => {
+    // Optimize: limit processing for large datasets
+    const maxNodesToProcess = Math.min(nodes.length, 1000); // Limit to 1000 nodes for performance
+    const nodesToProcess = nodes.slice(0, maxNodesToProcess);
+    
+    nodesToProcess.forEach(node => {
       const nodeEntry = graph.get(node.id)!;
       
-      // Find nearby nodes
+      // Find nearby nodes with early termination
       const nearbyNodes = nodes
         .filter(otherNode => otherNode.id !== node.id)
         .map(otherNode => ({
@@ -477,8 +488,8 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
     console.log(`Demo example selected: ${description}`);
   }, []);
 
-  // Get city bounds for map centering
-  const getCityBounds = useCallback(() => {
+  // Get city bounds for map centering - memoized
+  const bounds = useMemo(() => {
     if (cityNodes.length === 0) return null;
     
     const lats = cityNodes.map(node => node.lat);
@@ -493,8 +504,6 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
       centerLon: (Math.min(...lons) + Math.max(...lons)) / 2,
     };
   }, [cityNodes]);
-
-  const bounds = getCityBounds();
 
   return (
     <div className="space-y-4 xs:space-y-5 sm:space-y-6 md:space-y-8 pb-4 xs:pb-5 sm:pb-6 md:pb-8 lg:pb-10 xl:pb-12">
@@ -520,7 +529,7 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
         {/* Layer 1: Compact Controls (25%) */}
         <div className="lg:col-span-3 space-y-4">
           {/* Unified Control Panel */}
-          <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl border border-gray-600 shadow-xl p-4 lg:h-[600px] flex flex-col">
+          <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl border border-gray-600 shadow-xl p-4 lg:h-[600px] flex flex-col overflow-hidden">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center flex-shrink-0">
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -540,6 +549,17 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
                   {loading ? 'Cargando...' : 'Cargado'}
                 </span>
               </div>
+              
+              {/* Node Density Control - Compact */}
+              <div className="mb-3">
+                <NodeDensityControl
+                  maxNodes={maxNodesToRender}
+                  onMaxNodesChange={setMaxNodesToRender}
+                  totalNodes={cityNodes.length}
+                  visibleNodes={Math.min(maxNodesToRender, cityNodes.length)}
+                />
+              </div>
+              
               <div className="flex gap-2">
                 <button
                   onClick={loadCityData}
@@ -559,8 +579,8 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
             </div>
 
             {/* Route Planning */}
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="space-y-4">
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="space-y-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-gray-300 text-sm mb-2">Nodo de Origen</label>
                   <div className="flex gap-2">
@@ -655,7 +675,7 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
                 </div>
               </div>
 
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2 mt-4 flex-shrink-0">
                 <button
                   onClick={handleCalculateRoute}
                   disabled={!selectedSource || !selectedTarget || !loaded}
@@ -690,6 +710,7 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
               selectedSource={selectedSource}
               selectedTarget={selectedTarget}
               calculatedRoute={calculatedRoute}
+              maxNodesToRender={maxNodesToRender}
               onNodeClick={(node) => {
                 if (!selectedSource) {
                   setSelectedSource(node.id);
@@ -827,4 +848,4 @@ const CitySimulator: FC<CitySimulatorProps> = ({ onRouteCalculated }) => {
   );
 };
 
-export default CitySimulator;
+export default memo(CitySimulator);

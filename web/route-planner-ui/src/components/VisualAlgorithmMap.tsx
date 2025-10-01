@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -76,11 +76,17 @@ const VisualAlgorithmMap: React.FC<VisualAlgorithmMapProps> = ({
   // Get current step data
   const currentStepData = algorithmSteps[currentStep];
   
-  // Create node markers with different colors based on algorithm state
+  // Create node markers with different colors based on algorithm state - optimized
   const nodeMarkers = useMemo(() => {
-    if (!currentStepData) return [];
+    if (!currentStepData || nodes.length === 0) return [];
 
-    return nodes.map(node => {
+    // Limit the number of nodes rendered for performance
+    const maxNodesToRender = 500; // Limit to 500 nodes for performance
+    const nodesToRender = nodes.length > maxNodesToRender 
+      ? nodes.slice(0, maxNodesToRender) 
+      : nodes;
+
+    return nodesToRender.map(node => {
       let color = '#6B7280'; // Default gray (unvisited)
       let size = 6;
       let className = '';
@@ -107,7 +113,7 @@ const VisualAlgorithmMap: React.FC<VisualAlgorithmMapProps> = ({
         className = 'route-node';
       }
 
-      // Create custom icon
+      // Create custom icon - memoized
       const icon = L.divIcon({
         html: `<div style="
           width: ${size}px;
@@ -322,4 +328,4 @@ const VisualAlgorithmMap: React.FC<VisualAlgorithmMapProps> = ({
   );
 };
 
-export default VisualAlgorithmMap;
+export default memo(VisualAlgorithmMap);

@@ -39,10 +39,10 @@ export default defineConfig({
     },
   },
   
-  // Build configuration
+  // Build configuration - optimized for performance
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemaps in production for better performance
     minify: 'esbuild',
     target: 'es2020',
     rollupOptions: {
@@ -51,12 +51,17 @@ export default defineConfig({
           // Vendor chunks for better caching
           vendor: ['react', 'react-dom'],
           ui: ['zustand'],
-          utils: ['maplibre-gl', 'recharts'],
+          maps: ['leaflet', 'react-leaflet', 'maplibre-gl'],
+          charts: ['recharts'],
         },
       },
     },
     // Optimize dependencies
     chunkSizeWarningLimit: 1000,
+    // Enable tree shaking
+    treeshake: true,
+    // Optimize CSS
+    cssCodeSplit: true,
   },
   
   // Path resolution
@@ -80,7 +85,7 @@ export default defineConfig({
   // Environment variables
   envPrefix: 'VITE_',
   
-  // Optimize dependencies
+  // Optimize dependencies - enhanced for performance
   optimizeDeps: {
     include: [
       'react',
@@ -88,8 +93,12 @@ export default defineConfig({
       'zustand',
       'maplibre-gl',
       'recharts',
+      'leaflet',
+      'react-leaflet',
     ],
     exclude: [],
+    // Force pre-bundling of heavy dependencies
+    force: true,
   },
   
   // CSS configuration - Ensure PostCSS is properly configured
